@@ -1,0 +1,7 @@
+numpy
+mxnet-cu90
+matplotlib
+pillow
+scipy
+pandas
+nltk
