@@ -13,12 +13,19 @@ def extract_image_features():
     logging.info('total %d images from which features are extracted', len(feats))
 
 
+def extract_text_features():
+    from mxnet_text_to_image.data.flowers_texts import get_text_features
+    feats = get_text_features(data_dir_path=patch_path('data/flowers/text_c10'), glove_dir_path=patch_path('data/glove'))
+    logging.info('total %d text features extracted', len(feats))
+
+
 def main():
     sys.path.append(patch_path('..'))
 
     logging.basicConfig(level=logging.DEBUG)
 
     extract_image_features()
+    extract_text_features()
 
 
 if __name__ == '__main__':

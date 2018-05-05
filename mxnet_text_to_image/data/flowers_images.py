@@ -18,7 +18,7 @@ def get_image_paths(data_dir_path):
 
 def get_image_features(data_dir_path, model_ctx=mx.cpu()):
     features = dict()
-    features_path = os.path.join(os.path.dirname(data_dir_path), 'flower_feats.npy')
+    features_path = os.path.join(os.path.dirname(data_dir_path), 'flower_image_feats.npy')
     if os.path.exists(features_path):
         logging.debug('loading image features from %s', features_path)
         features = np.load(features_path).item()
