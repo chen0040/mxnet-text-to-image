@@ -1,7 +1,8 @@
 import numpy as np
 import nltk
 
-def pad_sequence(seq, max_sequence_length, padding):
+
+def pad_sequence(seq, max_sequence_length, padding='left'):
     seq = np.array(seq)
     vec = np.zeros(shape=(max_sequence_length, *seq.shape[1:]))
     if padding == 'left':
