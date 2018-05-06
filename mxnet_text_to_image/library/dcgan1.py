@@ -7,7 +7,7 @@ import os
 import numpy as np
 import time
 
-from mxnet_text_to_image.utils.image_utils import save_image, inverted_transform
+from mxnet_text_to_image.utils.image_utils import save_image, inverted_transform, Vgg16FeatureExtractor
 
 
 def facc(label, pred):
@@ -22,55 +22,19 @@ class Discriminator(nn.Block):
         super(Discriminator, self).__init__()
         self.ndf = ndf
         with self.name_scope():
-            self.fc1 = nn.Dense(1)
+            self.fc1 = nn.Dense(1024, 'relu')
             self.bn = nn.BatchNorm()
             self.dropout = nn.Dropout(.3)
-
-            netD = nn.Sequential()
-            with netD.name_scope():
-                # input shape: (?, num_channels, 64, 64)
-
-                netD.add(nn.Conv2D(channels=ndf,
-                                   kernel_size=4, strides=2,
-                                   padding=1, use_bias=False))
-                # netD.add(nn.BatchNorm())
-                netD.add(nn.LeakyReLU(0.2))
-                # state shape: (?, ndf, 32, 32)
-
-                netD.add(nn.Conv2D(channels=ndf * 2,
-                                   kernel_size=4, strides=2,
-                                   padding=1, use_bias=False))
-                netD.add(nn.BatchNorm())
-                netD.add(nn.LeakyReLU(0.2))
-                # state shape: (?, ndf * 2, 16, 16)
-
-                netD.add(nn.Conv2D(channels=ndf * 4,
-                                   kernel_size=4, strides=2,
-                                   padding=1, use_bias=False))
-                # netD.add(nn.BatchNorm())
-                netD.add(nn.LeakyReLU(0.2))
-                # state shape: (?, ndf * 4, 8, 8)
-
-                netD.add(nn.Conv2D(channels=ndf * 8,
-                                   kernel_size=4, strides=2,
-                                   padding=1, use_bias=False))
-                # netD.add(nn.BatchNorm())
-                netD.add(nn.LeakyReLU(0.2))
-                # state shape: (?, ndf * 8, 4, 4)
-
-                netD.add(nn.Conv2D(channels=300,
-                                   kernel_size=4, strides=1,
-                                   padding=0, use_bias=False))
-                # state shape: (?, 1, 1, 1)
-                self.netD = netD
+            self.fc2 = nn.Dense(1)
 
     def forward(self, x, *args):
-        x1 = self.netD(x[0]).reshape(300)
-        x2 = x[1]
+        x1 = nd.L2Normalization(x[0])
+        x2 = nd.L2Normalization(x[1])
         z = nd.concat(x1, x2, dim=1)
+        z = self.fc1(z)
         z = self.bn(z)
         z = self.dropout(z)
-        return self.fc1(z)
+        return self.fc2(z)
 
 
 class DCGan(object):
@@ -83,6 +47,7 @@ class DCGan(object):
         self.model_ctx = model_ctx
         self.data_ctx = data_ctx
         self.random_input_size = 100
+        self.fe = Vgg16FeatureExtractor(model_ctx=model_ctx)
 
     @staticmethod
     def get_config_file_path(model_dir_path):
@@ -99,38 +64,45 @@ class DCGan(object):
             # input shape: (?, random_input_length + text_input_length, 1, 1)
 
             netG.add(nn.Conv2DTranspose(channels=ngf * 8,
-                                        kernel_size=4, strides=1,
+                                        kernel_size=7, strides=1,
                                         padding=0, use_bias=False))
             netG.add(nn.BatchNorm())
             netG.add(nn.Activation('relu'))
-            # state shape: (?, ngf * 8, 4, 4)
+            # state shape: (?, ngf * 8, 7, 7)
 
             netG.add(nn.Conv2DTranspose(channels=ngf * 4,
                                         kernel_size=4, strides=2,
                                         padding=1, use_bias=False))
             netG.add(nn.BatchNorm())
             netG.add(nn.Activation('relu'))
-            # state shape: (?, ngf * 4, 8, 8)
+            # state shape: (?, ngf * 4, 14, 14)
 
             netG.add(nn.Conv2DTranspose(channels=ngf * 2,
                                         kernel_size=4, strides=2,
                                         padding=1, use_bias=False))
             netG.add(nn.BatchNorm())
             netG.add(nn.Activation('relu'))
-            # state shape: (?, ngf * 2, 16, 16)
+            # state shape: (?, ngf * 2, 28, 28)
 
             netG.add(nn.Conv2DTranspose(channels=ngf,
                                         kernel_size=4, strides=2,
                                         padding=1, use_bias=False))
             netG.add(nn.BatchNorm())
             netG.add(nn.Activation('relu'))
-            # state shape: (?, ngf, 32, 32)
+            # state shape: (?, ngf, 56, 56)
+
+            netG.add(nn.Conv2DTranspose(channels=ngf // 2,
+                                        kernel_size=4, strides=2,
+                                        padding=1, use_bias=False))
+            netG.add(nn.BatchNorm())
+            netG.add(nn.Activation('relu'))
+            # state shape: (?, ngf, 112, 112)
 
             netG.add(nn.Conv2DTranspose(channels=num_channels,
                                         kernel_size=4, strides=2,
                                         padding=1, use_bias=False))
             netG.add(nn.Activation('tanh'))
-            # state shape: (?, num_channels, 64, 64)
+            # state shape: (?, num_channels, 224, 224)
 
         netD = Discriminator(ndf)
 
@@ -147,7 +119,7 @@ class DCGan(object):
         self.netG.save_params(self.get_params_file_path(model_dir_path, 'netG'))
         self.netD.save_params(self.get_params_file_path(model_dir_path, 'netD'))
 
-    def fit(self, train_data, model_dir_path, epochs=2, batch_size=64, learning_rate=0.0002, beta1=0.5):
+    def fit(self, train_data, model_dir_path, epochs=2, batch_size=64, learning_rate=0.0002, beta1=0.5, print_every=2):
 
         config = dict()
         config['random_input_size'] = self.random_input_size
@@ -180,19 +152,20 @@ class DCGan(object):
 
                 # Step 1: Update netD
                 real_image_feats = batch.data[0].as_in_context(self.model_ctx)
+                bsize = real_image_feats.shape[0]
                 text_feats = batch.data[1].as_in_context(self.model_ctx)
                 random_input = nd.random_normal(0, 1, shape=(real_image_feats.shape[0], self.random_input_size, 1, 1), ctx=self.model_ctx)
 
                 with autograd.record():
                     # train with real image
-                    data = [real_image_feats, text_feats]
-                    output = self.netD(data).reshape((-1, 1))
+                    output = self.netD([real_image_feats, text_feats])
                     errD_real = loss(output, real_label)
                     metric.update([real_label, ], [output, ])
 
                     # train with fake image
-                    fake = self.netG(nd.concat(random_input, text_feats, dim=1))
-                    output = self.netD(fake).reshape((-1, 1))
+                    fake = self.netG(nd.concat(random_input, text_feats.reshape((bsize, 300, 1, 1)), dim=1))
+                    fake_feat = self.fe.image_net(fake)
+                    output = self.netD([fake_feat, text_feats])
                     errD_fake = loss(output, fake_label)
                     errD = errD_real + errD_fake
                     errD.backward()
@@ -202,15 +175,16 @@ class DCGan(object):
 
                 # Step 2: Update netG
                 with autograd.record():
-                    fake = self.netG(nd.concat(random_input, text_feats, dim=1))
-                    output = self.netD(fake).reshape((-1, 1))
+                    fake = self.netG(nd.concat(random_input, text_feats.reshape((bsize, 300, 1, 1)), dim=1))
+                    fake_feat = self.fe.image_net(fake)
+                    output = self.netD([fake_feat, text_feats])
                     errG = loss(output, real_label)
                     errG.backward()
 
                 trainerG.step(batch.data[0].shape[0])
 
                 # Print log infomation every ten batches
-                if iter % 10 == 0:
+                if iter % print_every == 0:
                     name, acc = metric.get()
                     logging.info('speed: {} samples/s'.format(batch_size / (time.time() - btic)))
                     logging.info(
