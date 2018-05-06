@@ -1,3 +1,4 @@
 jpg/
 !.gitignore
 flower_text_feats_add.npy
+flower_text_feats_add_mapping.npy

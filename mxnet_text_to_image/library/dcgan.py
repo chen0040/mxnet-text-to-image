@@ -7,7 +7,7 @@ import os
 import numpy as np
 import time
 
-from mxnet_gan.library.image_utils import load_images, save_image
+from mxnet_text_to_image.utils.image_utils import save_image, inverted_transform
 
 
 def facc(label, pred):
@@ -228,13 +228,15 @@ class DCGan(object):
             self.checkpoint(model_dir_path)
 
             # Visualize one generated image for each epoch
-            fake_img = fake[0]
-            fake_img = ((fake_img.asnumpy().transpose(1, 2, 0) + 1.0) * 127.5).astype(np.uint8)
+            fake_img = inverted_transform(fake[0]).asnumpy().astype(np.uint8)
+            # fake_img = ((fake_img.asnumpy().transpose(1, 2, 0) + 1.0) * 127.5).astype(np.uint8)
+
             save_image(fake_img, os.path.join(model_dir_path, DCGan.model_name + '-training-') + str(epoch) + '.png')
 
     def generate(self, num_images, output_dir_path):
         for i in range(num_images):
             latent_z = nd.random_normal(loc=0, scale=1, shape=(1, self.random_input_size, 1, 1), ctx=self.model_ctx)
             img = self.netG(latent_z)[0]
-            img = ((img.asnumpy().transpose(1, 2, 0) + 1.0) * 127.5).astype(np.uint8)
+            img = inverted_transform(img).asnumpy().astype(np.uint8)
+            # img = ((img.asnumpy().transpose(1, 2, 0) + 1.0) * 127.5).astype(np.uint8)
             save_image(img, os.path.join(output_dir_path, DCGan.model_name+'-generated-'+str(i) + '.png'))
