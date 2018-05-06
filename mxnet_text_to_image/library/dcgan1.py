@@ -75,7 +75,7 @@ class Discriminator(nn.Block):
 
 class DCGan(object):
 
-    model_name = 'dcgan'
+    model_name = 'dcgan-v1'
 
     def __init__(self, model_ctx=mx.cpu(), data_ctx=mx.cpu()):
         self.netG = None
