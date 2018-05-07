@@ -25,8 +25,8 @@ def main():
     train_data = get_data_iter(data_dir_path=data_dir_path,
                                ctx=mx.cpu(),
                                image_feature_extractor=None,
-                               image_width=56,
-                               image_height=56,
+                               image_width=64,
+                               image_height=64,
                                batch_size=batch_size,
                                text_mode='add')
 
