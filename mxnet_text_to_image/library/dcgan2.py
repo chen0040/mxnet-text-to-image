@@ -239,7 +239,7 @@ class DCGan(object):
             self.checkpoint(model_dir_path)
 
             # Visualize one generated image for each epoch
-            fake_img = inverted_transform(fake[0]).asnumpy().astype(np.uint8)
+            fake_img = inverted_transform(fake_images[0]).asnumpy().astype(np.uint8)
             # fake_img = ((fake_img.asnumpy().transpose(1, 2, 0) + 1.0) * 127.5).astype(np.uint8)
 
             save_image(fake_img, os.path.join(model_dir_path, DCGan.model_name + '-training-') + str(epoch) + '.png')
