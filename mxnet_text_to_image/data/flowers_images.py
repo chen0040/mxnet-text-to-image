@@ -37,7 +37,7 @@ def get_image_features(data_dir_path, model_ctx=mx.cpu(), image_width=224, image
         feats = fe.extract_image_features(image_path, image_width=image_width, image_height=image_height).asnumpy()
         features[image_id] = feats[0]
         changed = True
-        if i % 10 == 0:
+        if i % 500 == 0:
             logging.debug('Has extracted features from %d images out of %d images (%.2f %%)', i+1, total_images, (i+1) * 100 / total_images)
             if changed:
                 np.save(features_path, features)

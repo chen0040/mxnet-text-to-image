@@ -33,7 +33,7 @@ class FlowersImagesUnitTest(unittest.TestCase):
 
         from mxnet_text_to_image.data.flowers_images import get_image_features
         features = get_image_features(data_dir_path, model_ctx=mx.gpu(0))
-        self.assertTrue(0 in features)
+        self.assertFalse(0 in features)
         self.assertEqual(8189, len(features))
 
     def test_get_transformed_images(self):
