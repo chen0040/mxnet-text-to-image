@@ -119,7 +119,7 @@ class DCGan(object):
         self.netG.save_params(self.get_params_file_path(model_dir_path, 'netG'))
         self.netD.save_params(self.get_params_file_path(model_dir_path, 'netD'))
 
-    def fit(self, train_data, model_dir_path, epochs=2, batch_size=64, learning_rate=0.0002, beta1=0.5, print_every=2):
+    def fit(self, train_data, image_feats_dict, model_dir_path, epochs=2, batch_size=64, learning_rate=0.0002, beta1=0.5, print_every=2):
 
         config = dict()
         config['random_input_size'] = self.random_input_size
@@ -151,7 +151,11 @@ class DCGan(object):
             for batch in train_data:
 
                 # Step 1: Update netD
-                real_image_feats = batch.data[0].as_in_context(self.model_ctx)
+                real_image_ids = batch.data[0].as_in_context(self.model_ctx)
+                real_image_feats = list()
+                for image_id in real_image_ids:
+                    real_image_feats.append(image_feats_dict[image_id.asscalar().astype(np.uint8)])
+                real_image_feats = nd.array(real_image_feats, ctx=self.model_ctx)
                 bsize = real_image_feats.shape[0]
                 text_feats = batch.data[1].as_in_context(self.model_ctx)
                 random_input = nd.random_normal(0, 1, shape=(real_image_feats.shape[0], self.random_input_size, 1, 1), ctx=self.model_ctx)

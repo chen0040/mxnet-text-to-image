@@ -10,8 +10,9 @@ def get_image_paths(data_dir_path):
         for fname in files:
             if fname.endswith('.jpg'):
                 image_name = fname.replace('.jpg', '')
+                image_id = int(image_name[6:])
                 fpath = os.path.join(root_dir, fname)
-                result[image_name] = fpath
+                result[image_id] = fpath
 
     return result
 
