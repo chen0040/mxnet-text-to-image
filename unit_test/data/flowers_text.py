@@ -29,8 +29,8 @@ class FlowersTextTest(unittest.TestCase):
     def test_get_text_features(self):
 
         from mxnet_text_to_image.data.flowers_texts import get_text_features
-        feats, _ = get_text_features(data_dir_path=patch_path('../../demo/data/flowers/text_c10'),
-                                     glove_dir_path=patch_path('../../demo/data/glove'))
+        feats, image_id_list = get_text_features(data_dir_path=patch_path('../../demo/data/flowers/text_c10'),
+                                                 glove_dir_path=patch_path('../../demo/data/glove'))
         logging.info('feats: %d', len(feats))
         self.assertTupleEqual((81890, 300), feats.shape)
 

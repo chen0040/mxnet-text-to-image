@@ -33,14 +33,16 @@ class FlowersImagesUnitTest(unittest.TestCase):
 
         from mxnet_text_to_image.data.flowers_images import get_image_features
         features = get_image_features(data_dir_path, model_ctx=mx.gpu(0))
+        self.assertTrue(0 in features)
         self.assertEqual(8189, len(features))
 
-    def test_get_image_features(self):
+    def test_get_transformed_images(self):
         data_dir_path = patch_path('../../demo/data/flowers/jpg')
 
         from mxnet_text_to_image.data.flowers_images import get_transformed_images
         features = get_transformed_images(data_dir_path)
         self.assertEqual(8189, len(features))
+        self.assertTrue(0 not in features)
         for i, (image_id, image) in enumerate(features.items()):
             if i == 2:
                 break

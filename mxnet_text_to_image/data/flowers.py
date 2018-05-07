@@ -15,8 +15,5 @@ def get_data_iter(data_dir_path, glove_dir_path=None, max_sequence_length=-1,
                                                    glove_dir_path=glove_dir_path,
                                                    max_seq_length=max_sequence_length,
                                                    mode=text_mode)
-    image_ids = list()
-    for image_id in image_id_array:
-        image_ids.append(int(image_id[6:]))  # remove prefix 'image_'
 
-    return mx.io.NDArrayIter(data=[nd.array(image_ids, ctx=mx.cpu(), dtype=np.uint8), text_feats], batch_size=batch_size, shuffle=True)
+    return mx.io.NDArrayIter(data=[nd.array(image_id_array, ctx=mx.cpu()), text_feats], batch_size=batch_size, shuffle=True)

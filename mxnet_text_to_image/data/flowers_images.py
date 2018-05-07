@@ -10,7 +10,7 @@ def get_image_paths(data_dir_path):
         for fname in files:
             if fname.endswith('.jpg'):
                 image_name = fname.replace('.jpg', '')
-                image_id = int(image_name[6:])
+                image_id = int(image_name.replace('image_', ''))
                 fpath = os.path.join(root_dir, fname)
                 result[image_id] = fpath
 
@@ -34,7 +34,8 @@ def get_image_features(data_dir_path, model_ctx=mx.cpu(), image_width=224, image
     for i, (image_id, image_path) in enumerate(image_paths_dict.items()):
         if image_id in features:
             continue
-        features[image_id] = fe.extract_image_features(image_path, image_width=image_width, image_height=image_height).asnumpy()
+        feats = fe.extract_image_features(image_path, image_width=image_width, image_height=image_height).asnumpy()
+        features[image_id] = feats[0]
         changed = True
         if i % 10 == 0:
             logging.debug('Has extracted features from %d images out of %d images (%.2f %%)', i+1, total_images, (i+1) * 100 / total_images)

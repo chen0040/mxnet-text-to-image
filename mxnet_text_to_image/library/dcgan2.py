@@ -64,7 +64,6 @@ class Discriminator(nn.Block):
             self.fc2 = nn.Dense(1)
 
     def forward(self, x, *args):
-        print(x[0].shape)
         x1 = self.netD(x[0])
         x1 = nd.L2Normalization(x1.reshape((x1.shape[0], 300)))
         x2 = nd.L2Normalization(x[1])
@@ -149,7 +148,8 @@ class DCGan(object):
         self.netG.save_params(self.get_params_file_path(model_dir_path, 'netG'))
         self.netD.save_params(self.get_params_file_path(model_dir_path, 'netD'))
 
-    def fit(self, train_data, model_dir_path, image_dict, epochs=2, batch_size=64, learning_rate=0.0002, beta1=0.5, print_every=2):
+    def fit(self, train_data, model_dir_path, image_dict, epochs=2, batch_size=64, learning_rate=0.0002, beta1=0.5,
+            print_every=10):
 
         config = dict()
         config['random_input_size'] = self.random_input_size
@@ -184,7 +184,8 @@ class DCGan(object):
                 real_images = list()
                 real_image_ids = batch.data[0].as_in_context(self.model_ctx)
                 for image_id in real_image_ids:
-                    real_images = image_dict[image_id.asscalar().astype(np.uint8)]
+                    key = image_id.asscalar().astype(np.uint)
+                    real_images.append(image_dict[key])
                 real_images = nd.array(real_images, ctx=self.model_ctx)
                 bsize = real_images.shape[0]
                 text_feats = batch.data[1].as_in_context(self.model_ctx)

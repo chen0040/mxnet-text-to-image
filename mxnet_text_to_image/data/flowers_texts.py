@@ -11,7 +11,7 @@ def load_text_files(data_dir_path):
         for fname in files:
             if fname.endswith('.txt'):
                 image_name = fname.replace('.txt', '')
-                image_id = int(image_name[6:])
+                image_id = int(image_name.replace('image_', ''))
                 result[image_id] = os.path.join(root_dir, fname)
 
     return result

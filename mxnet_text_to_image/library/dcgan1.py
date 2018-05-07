@@ -154,7 +154,7 @@ class DCGan(object):
                 real_image_ids = batch.data[0].as_in_context(self.model_ctx)
                 real_image_feats = list()
                 for image_id in real_image_ids:
-                    real_image_feats.append(image_feats_dict[image_id.asscalar().astype(np.uint8)])
+                    real_image_feats.append(image_feats_dict[image_id.asscalar().astype(np.uint)])
                 real_image_feats = nd.array(real_image_feats, ctx=self.model_ctx)
                 bsize = real_image_feats.shape[0]
                 text_feats = batch.data[1].as_in_context(self.model_ctx)
