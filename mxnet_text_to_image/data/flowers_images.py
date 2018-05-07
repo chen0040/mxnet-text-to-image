@@ -46,7 +46,7 @@ def get_image_features(data_dir_path, model_ctx=mx.cpu(), image_width=224, image
     return features
 
 
-def get_transformed_images(data_dir_path, model_ctx=mx.cpu(), image_width=64, image_height=64):
+def get_transformed_images(data_dir_path, image_width=64, image_height=64):
     features = dict()
     features_path = os.path.join(os.path.dirname(data_dir_path), 'flower_transformed_images.npy')
     if os.path.exists(features_path):
@@ -63,7 +63,7 @@ def get_transformed_images(data_dir_path, model_ctx=mx.cpu(), image_width=64, im
             continue
         features[image_id] = transform_image(image_path, image_width=image_width, image_height=image_height).asnumpy()
         changed = True
-        if i % 10 == 0:
+        if i % 1000 == 0:
             logging.debug('Has transformed %d images out of %d images (%.2f %%)', i+1, total_images, (i+1) * 100 / total_images)
             if changed:
                 np.save(features_path, features)

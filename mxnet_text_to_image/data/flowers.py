@@ -14,7 +14,7 @@ def get_data_iter(data_dir_path, glove_dir_path=None, max_sequence_length=-1, ct
         image_feats_dict = get_image_features(data_dir_path=os.path.join(data_dir_path, 'jpg'), model_ctx=ctx,
                                               image_width=image_width, image_height=image_height)
     else:
-        image_feats_dict = get_transformed_images(data_dir_path=os.path.join(data_dir_path, 'jpg'), model_ctx=ctx,
+        image_feats_dict = get_transformed_images(data_dir_path=os.path.join(data_dir_path, 'jpg'),
                                                   image_width=image_width, image_height=image_height)
     text_feats, image_id_array = get_text_features(data_dir_path=os.path.join(data_dir_path, 'text_c10'),
                                                    glove_dir_path=glove_dir_path,

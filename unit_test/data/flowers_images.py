@@ -39,13 +39,12 @@ class FlowersImagesUnitTest(unittest.TestCase):
         data_dir_path = patch_path('../../demo/data/flowers/jpg')
 
         from mxnet_text_to_image.data.flowers_images import get_transformed_images
-        features = get_transformed_images(data_dir_path, model_ctx=mx.gpu(0))
+        features = get_transformed_images(data_dir_path)
         self.assertEqual(8189, len(features))
-        for i, image_id, image in enumerate(features.items()):
+        for i, (image_id, image) in enumerate(features.items()):
             if i == 2:
                 break
             self.assertTupleEqual((3, 64, 64), image.shape)
-
 
 
 if __name__ == '__main__':
