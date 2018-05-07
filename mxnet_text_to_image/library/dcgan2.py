@@ -176,7 +176,7 @@ class DCGan(object):
 
         logging.basicConfig(level=logging.DEBUG)
 
-        fake = []
+        fake_images = []
         for epoch in range(epochs):
             tic = time.time()
             btic = time.time()
