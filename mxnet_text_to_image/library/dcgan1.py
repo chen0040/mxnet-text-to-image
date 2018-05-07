@@ -6,7 +6,7 @@ from mxnet.gluon import nn
 import os
 import numpy as np
 import time
-
+from mxnet_text_to_image.utils.glove_loader import GloveModel
 from mxnet_text_to_image.utils.image_utils import save_image, inverted_transform, Vgg16FeatureExtractor
 
 
@@ -48,6 +48,7 @@ class DCGan(object):
         self.data_ctx = data_ctx
         self.random_input_size = 100
         self.fe = Vgg16FeatureExtractor(model_ctx=model_ctx)
+        self.glove = GloveModel()
 
     @staticmethod
     def get_config_file_path(model_dir_path):
@@ -56,6 +57,9 @@ class DCGan(object):
     @staticmethod
     def get_params_file_path(model_dir_path, net_name):
         return os.path.join(model_dir_path, DCGan.model_name + '-' + net_name + '.params')
+
+    def load_glove(self, glove_dir_path):
+        self.glove.load(data_dir_path=glove_dir_path, embedding_dim=300)
 
     @staticmethod
     def create_model(num_channels=3, ngf=64, ndf=64):
@@ -211,10 +215,12 @@ class DCGan(object):
 
             save_image(fake_img, os.path.join(model_dir_path, DCGan.model_name + '-training-') + str(epoch) + '.png')
 
-    def generate(self, num_images, output_dir_path):
+    def generate(self, text_message, num_images, output_dir_path):
+        text_feats = self.glove.encode_doc(text_message)
+        text_feats = nd.array(text_feats, ctx=self.model_ctx).reshape((1, 300, 1, 1))
         for i in range(num_images):
             latent_z = nd.random_normal(loc=0, scale=1, shape=(1, self.random_input_size, 1, 1), ctx=self.model_ctx)
-            img = self.netG(latent_z)[0]
+            img = self.netG(nd.concat(latent_z, text_feats, dim=1))[0]
             img = inverted_transform(img).asnumpy().astype(np.uint8)
             # img = ((img.asnumpy().transpose(1, 2, 0) + 1.0) * 127.5).astype(np.uint8)
             save_image(img, os.path.join(output_dir_path, DCGan.model_name+'-generated-'+str(i) + '.png'))

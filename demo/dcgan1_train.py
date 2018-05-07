@@ -17,7 +17,7 @@ def main():
     output_dir_path = patch_path('models')
     batch_size = 8
     epochs = 100
-    ctx = mx.cpu()  # sorry no enough memory on my graphics card
+    ctx = mx.gpu(0)
 
     from mxnet_text_to_image.library.dcgan1 import DCGan
     from mxnet_text_to_image.data.flowers import get_data_iter
