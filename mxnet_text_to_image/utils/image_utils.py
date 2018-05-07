@@ -12,6 +12,7 @@ def transform(data):
     data = data.transpose((2, 0, 1))
     return (data.astype(np.float32) / 255 - rgb_mean) / rgb_std
 
+
 def transform_image(img_path, image_width, image_height):
     x = image.imread(img_path)
     x = image.imresize(x, image_width, image_height)
@@ -20,7 +21,8 @@ def transform_image(img_path, image_width, image_height):
 
 
 def inverted_transform(img):
-    return ((img * rgb_std + rgb_mean) * 255).transpose(1, 2, 0)
+    return ((img.as_in_context(mx.cpu()) * rgb_std + rgb_mean) * 255).transpose((1, 2, 0))
+
 
 def load_vgg16_image(img_path, image_width=224, image_height=224):
     x = image.imread(img_path)
