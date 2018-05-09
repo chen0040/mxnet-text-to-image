@@ -12,6 +12,7 @@ The current project implement the following DCGAN models that can perform text-t
     * The discriminator takes image features (extracted using a pretrained VGG16 model) of shape (, 1000), which
     is concatenated with the glove-encoded text features and pass through Dense layers to produce a single output
     which is passed to SigmoidBinaryCrossEntropy loss function.
+    * This model 
 * [dcgan2.py](mxnet_text_to_image/library/dcgan2.py): In this model:
     * The generator takes in a randomly generated sequence of fixed length (default to 100) and the glove-encoded text features (of fixed length 
     of 300), concatenates the two and pass them through a number of layers of Conv2DTranspose to produce

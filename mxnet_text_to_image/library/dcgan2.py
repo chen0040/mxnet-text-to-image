@@ -153,6 +153,7 @@ class DCGan(object):
         self.netD.save_params(self.get_params_file_path(model_dir_path, 'netD'))
 
     def fit(self, train_data, model_dir_path, image_dict, epochs=2, batch_size=64, learning_rate=0.0002, beta1=0.5,
+            start_epoch=0,
             print_every=10):
 
         config = dict()
@@ -161,10 +162,11 @@ class DCGan(object):
 
         loss = gluon.loss.SigmoidBinaryCrossEntropyLoss()
 
-        self.netG, self.netD = self.create_model()
+        if self.netG is None:
+            self.netG, self.netD = self.create_model()
 
-        self.netG.initialize(mx.init.Normal(0.02), ctx=self.model_ctx)
-        self.netD.initialize(mx.init.Normal(0.02), ctx=self.model_ctx)
+            self.netG.initialize(mx.init.Normal(0.02), ctx=self.model_ctx)
+            self.netD.initialize(mx.init.Normal(0.02), ctx=self.model_ctx)
 
         trainerG = gluon.Trainer(self.netG.collect_params(), 'adam', {'learning_rate': learning_rate, 'beta1': beta1})
         trainerD = gluon.Trainer(self.netD.collect_params(), 'adam', {'learning_rate': learning_rate, 'beta1': beta1})
@@ -177,7 +179,7 @@ class DCGan(object):
         logging.basicConfig(level=logging.DEBUG)
 
         fake_images = []
-        for epoch in range(epochs):
+        for epoch in range(start_epoch, epochs):
             tic = time.time()
             btic = time.time()
             train_data.reset()
