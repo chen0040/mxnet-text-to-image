@@ -25,13 +25,14 @@ def main():
 
     train_data = get_data_iter(data_dir_path=data_dir_path,
                                batch_size=batch_size,
+                               limit=1000,
                                text_mode='add')
 
     image_feats_dict = get_image_features(data_dir_path=os.path.join(data_dir_path, 'jpg'), model_ctx=ctx,
                                           image_width=224, image_height=224)
 
     gan = DCGan(model_ctx=ctx)
-    gan.random_input_size = 100  # random input is 100, text input is 300
+    gan.random_input_size = 20  # random input is 20, text input is 300
 
     gan.fit(train_data=train_data, image_feats_dict=image_feats_dict, model_dir_path=output_dir_path,
             epochs=epochs, batch_size=batch_size)

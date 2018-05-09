@@ -25,6 +25,8 @@ def main():
 
     texts = load_texts(patch_path('data/flowers/text_c10'))
     for i, (line, image_id) in enumerate(texts.items()):
+        if i > 100:
+            break
         gan.generate(text_message=line, num_images=1, output_dir_path=patch_path('output'))
 
 

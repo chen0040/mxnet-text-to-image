@@ -3,7 +3,7 @@ import sys
 import mxnet as mx
 import logging
 
-LOAD_EXISTING_MODEL = True
+LOAD_EXISTING_MODEL = False
 
 def patch_path(path):
     return os.path.join(os.path.dirname(__file__), path)
@@ -26,17 +26,18 @@ def main():
 
     train_data = get_data_iter(data_dir_path=data_dir_path,
                                batch_size=batch_size,
+                               limit=10000,
                                text_mode='add')
 
     image_dict = get_transformed_images(data_dir_path=os.path.join(data_dir_path, 'jpg'),
                                         image_width=64, image_height=64)
 
     gan = DCGan(model_ctx=ctx)
-    gan.random_input_size = 100  # random input is 100, text input is 300
+    gan.random_input_size = 20  # random input is 20, text input is 300
     if LOAD_EXISTING_MODEL:
         gan.load_model(model_dir_path=output_dir_path)
 
-    start_epoch = 44
+    start_epoch = 0
     gan.fit(train_data=train_data, image_dict=image_dict, model_dir_path=output_dir_path,
             start_epoch=start_epoch,
             epochs=epochs, batch_size=batch_size)

@@ -7,6 +7,7 @@ import numpy as np
 
 
 def get_data_iter(data_dir_path, glove_dir_path=None, max_sequence_length=-1,
+                  limit = -1,
                   text_mode='add', batch_size=64):
     if glove_dir_path is None:
         glove_dir_path = os.path.join(os.path.dirname(data_dir_path), 'glove')
@@ -15,5 +16,9 @@ def get_data_iter(data_dir_path, glove_dir_path=None, max_sequence_length=-1,
                                                    glove_dir_path=glove_dir_path,
                                                    max_seq_length=max_sequence_length,
                                                    mode=text_mode)
+
+    if limit > 0:
+        text_feats = text_feats[0:min(limit, len(text_feats))]
+        image_id_array = image_id_array[0:min(limit, len(text_feats))]
 
     return mx.io.NDArrayIter(data=[nd.array(image_id_array, ctx=mx.cpu()), text_feats], batch_size=batch_size, shuffle=True)

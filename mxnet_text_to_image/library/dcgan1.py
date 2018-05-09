@@ -6,6 +6,8 @@ from mxnet.gluon import nn
 import os
 import numpy as np
 import time
+
+from mxnet_text_to_image.library.pool import ImagePool
 from mxnet_text_to_image.utils.glove_loader import GloveModel
 from mxnet_text_to_image.utils.image_utils import save_image, inverted_transform, Vgg16FeatureExtractor
 
@@ -28,8 +30,8 @@ class Discriminator(nn.Block):
             self.fc2 = nn.Dense(1)
 
     def forward(self, x, *args):
-        x1 = nd.L2Normalization(x[0])
-        x2 = nd.L2Normalization(x[1])
+        x1 = x[0]
+        x2 = x[1]
         z = nd.concat(x1, x2, dim=1)
         z = self.fc1(z)
         z = self.bn(z)
@@ -123,7 +125,9 @@ class DCGan(object):
         self.netG.save_params(self.get_params_file_path(model_dir_path, 'netG'))
         self.netD.save_params(self.get_params_file_path(model_dir_path, 'netD'))
 
-    def fit(self, train_data, image_feats_dict, model_dir_path, epochs=2, batch_size=64, learning_rate=0.0002, beta1=0.5, print_every=2):
+    def fit(self, train_data, image_feats_dict, model_dir_path, epochs=2, batch_size=64,
+            image_pool_size=50,
+            learning_rate=0.0002, beta1=0.5, print_every=2):
 
         config = dict()
         config['random_input_size'] = self.random_input_size
@@ -131,16 +135,19 @@ class DCGan(object):
 
         loss = gluon.loss.SigmoidBinaryCrossEntropyLoss()
 
-        self.netG, self.netD = self.create_model()
+        if self.netG is None:
+            self.netG, self.netD = self.create_model()
 
-        self.netG.initialize(mx.init.Normal(0.02), ctx=self.model_ctx)
-        self.netD.initialize(mx.init.Normal(0.02), ctx=self.model_ctx)
+            self.netG.initialize(mx.init.Normal(0.02), ctx=self.model_ctx)
+            self.netD.initialize(mx.init.Normal(0.02), ctx=self.model_ctx)
 
         trainerG = gluon.Trainer(self.netG.collect_params(), 'adam', {'learning_rate': learning_rate, 'beta1': beta1})
         trainerD = gluon.Trainer(self.netD.collect_params(), 'adam', {'learning_rate': learning_rate, 'beta1': beta1})
 
         real_label = nd.ones((batch_size,), ctx=self.model_ctx)
         fake_label = nd.zeros((batch_size, ), ctx=self.model_ctx)
+
+        image_pool = ImagePool(image_pool_size)
 
         metric = mx.metric.CustomMetric(facc)
 
@@ -164,15 +171,17 @@ class DCGan(object):
                 text_feats = batch.data[1].as_in_context(self.model_ctx)
                 random_input = nd.random_normal(0, 1, shape=(real_image_feats.shape[0], self.random_input_size, 1, 1), ctx=self.model_ctx)
 
+                fake = self.netG(nd.concat(random_input, text_feats.reshape((bsize, 300, 1, 1)), dim=1))
+                fake_feat = self.fe.image_net(fake)
+                fake_concat = image_pool.query([real_image_feats, text_feats])
+
                 with autograd.record():
                     # train with real image
-                    output = self.netD([real_image_feats, text_feats])
+                    output = self.netD(fake_concat)
                     errD_real = loss(output, real_label)
                     metric.update([real_label, ], [output, ])
 
                     # train with fake image
-                    fake = self.netG(nd.concat(random_input, text_feats.reshape((bsize, 300, 1, 1)), dim=1))
-                    fake_feat = self.fe.image_net(fake)
                     output = self.netD([fake_feat, text_feats])
                     errD_fake = loss(output, fake_label)
                     errD = errD_real + errD_fake

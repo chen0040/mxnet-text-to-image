@@ -23,9 +23,11 @@ def main():
     gan.load_glove(glove_dir_path=patch_path('data/glove'))
     gan.load_model(model_dir_path=model_dir_path)
 
-    texts = load_texts(patch_path('data/flowers/text_c10'))
-    for i, (line, image_id) in enumerate(texts.items()):
-        gan.generate(text_message=line, num_images=1, output_dir_path=patch_path('output'))
+    texts = load_texts(patch_path('data/flowers/text_c10'), 300)
+    for i, (image_id, lines) in enumerate(texts.items()):
+        for j, line in enumerate(lines[:1]):
+            print(line)
+            gan.generate(text_message=line, output_dir_path=patch_path('output'), filename=str(i) + '-' + str(j) + '.png')
 
 
 if __name__ == '__main__':

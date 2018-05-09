@@ -5,7 +5,7 @@ from mxnet_text_to_image.utils.text_utils import word_tokenize, pad_sequence
 import numpy as np
 
 
-def load_text_files(data_dir_path):
+def load_text_files(data_dir_path, files_to_load=-1):
     result = dict()
     for root_dir, sub_dirs, files in os.walk(data_dir_path):
         for fname in files:
@@ -13,13 +13,17 @@ def load_text_files(data_dir_path):
                 image_name = fname.replace('.txt', '')
                 image_id = int(image_name.replace('image_', ''))
                 result[image_id] = os.path.join(root_dir, fname)
+                if 0 < files_to_load <= len(result):
+                    break
+        if 0 < files_to_load <= len(result):
+            break
 
     return result
 
 
-def load_texts(data_dir_path):
+def load_texts(data_dir_path, files_to_load=-1):
     result = dict()
-    image_id_2_text_file_paths = load_text_files(data_dir_path)
+    image_id_2_text_file_paths = load_text_files(data_dir_path, files_to_load=files_to_load)
     total_files = len(image_id_2_text_file_paths)
     for i, (image_id, text_file_path) in enumerate(image_id_2_text_file_paths.items()):
         with open(text_file_path, 'r') as f:

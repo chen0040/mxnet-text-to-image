@@ -6,6 +6,8 @@ from mxnet.gluon import nn
 import os
 import numpy as np
 import time
+
+from mxnet_text_to_image.library.pool import ImagePool
 from mxnet_text_to_image.utils.glove_loader import GloveModel
 from mxnet_text_to_image.utils.image_utils import save_image, inverted_transform, Vgg16FeatureExtractor
 
@@ -58,18 +60,18 @@ class Discriminator(nn.Block):
                                    kernel_size=4, strides=1,
                                    padding=0, use_bias=False))
             self.netD = netD
-            self.fc1 = nn.Dense(1024, 'relu')
-            self.bn = nn.BatchNorm()
+            # self.fc1 = nn.Dense(1024, 'relu')
+            # self.bn = nn.BatchNorm()
             self.dropout = nn.Dropout(.3)
             self.fc2 = nn.Dense(1)
 
     def forward(self, x, *args):
         x1 = self.netD(x[0])
-        x1 = nd.L2Normalization(x1.reshape((x1.shape[0], 300)))
-        x2 = nd.L2Normalization(x[1])
+        x1 = x1.reshape((x1.shape[0], 300))
+        x2 = x[1]
         z = nd.concat(x1, x2, dim=1)
-        z = self.fc1(z)
-        z = self.bn(z)
+        # z = self.fc1(z)
+        # z = self.bn(z)
         z = self.dropout(z)
         return self.fc2(z)
 
@@ -153,12 +155,15 @@ class DCGan(object):
         self.netD.save_params(self.get_params_file_path(model_dir_path, 'netD'))
 
     def fit(self, train_data, model_dir_path, image_dict, epochs=2, batch_size=64, learning_rate=0.0002, beta1=0.5,
+            image_pool_size=50,
             start_epoch=0,
             print_every=10):
 
         config = dict()
         config['random_input_size'] = self.random_input_size
         np.save(self.get_config_file_path(model_dir_path), config)
+
+        image_pool = ImagePool(image_pool_size)
 
         loss = gluon.loss.SigmoidBinaryCrossEntropyLoss()
 
@@ -197,6 +202,9 @@ class DCGan(object):
                 text_feats = batch.data[1].as_in_context(self.model_ctx)
                 random_input = nd.random_normal(0, 1, shape=(real_images.shape[0], self.random_input_size, 1, 1), ctx=self.model_ctx)
 
+                fake_images = self.netG(nd.concat(random_input, text_feats.reshape((bsize, 300, 1, 1)), dim=1))
+                fake_concat = image_pool.query([fake_images, text_feats])
+
                 with autograd.record():
                     # train with real image
                     output = self.netD([real_images, text_feats])
@@ -204,8 +212,7 @@ class DCGan(object):
                     metric.update([real_label, ], [output, ])
 
                     # train with fake image
-                    fake_images = self.netG(nd.concat(random_input, text_feats.reshape((bsize, 300, 1, 1)), dim=1))
-                    output = self.netD([fake_images, text_feats])
+                    output = self.netD(fake_concat)
                     errD_fake = loss(output, fake_label)
                     errD = errD_real + errD_fake
                     errD.backward()
@@ -246,12 +253,12 @@ class DCGan(object):
 
             save_image(fake_img, os.path.join(model_dir_path, DCGan.model_name + '-training-') + str(epoch) + '.png')
 
-    def generate(self, text_message, num_images, output_dir_path):
+    def generate(self, text_message, filename, output_dir_path):
         text_feats = self.glove.encode_doc(text_message)
         text_feats = nd.array(text_feats, ctx=self.model_ctx).reshape((1, 300, 1, 1))
-        for i in range(num_images):
-            latent_z = nd.random_normal(loc=0, scale=1, shape=(1, self.random_input_size, 1, 1), ctx=self.model_ctx)
-            img = self.netG(nd.concat(latent_z, text_feats, dim=1))[0]
-            img = inverted_transform(img).asnumpy().astype(np.uint8)
-            # img = ((img.asnumpy().transpose(1, 2, 0) + 1.0) * 127.5).astype(np.uint8)
-            save_image(img, os.path.join(output_dir_path, DCGan.model_name+'-generated-'+str(i) + '.png'))
+
+        latent_z = nd.random_normal(loc=0, scale=1, shape=(1, self.random_input_size, 1, 1), ctx=self.model_ctx)
+        img = self.netG(nd.concat(latent_z, text_feats, dim=1))[0]
+        img = inverted_transform(img).asnumpy().astype(np.uint8)
+        # img = ((img.asnumpy().transpose(1, 2, 0) + 1.0) * 127.5).astype(np.uint8)
+        save_image(img, os.path.join(output_dir_path, filename))
