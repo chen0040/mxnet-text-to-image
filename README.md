@@ -21,7 +21,7 @@ The current project implement the following DCGAN models that can perform text-t
     a fixed-length numeric vector, which is then concatenated with the glove-encoded text features and pass through
     Dense layers to produce a single output, which is passed to SigmoidBinaryCrossEntropy loss function.
     
-Currently the DCGan in [dcgan1.py](mxnet_text_to_image/library/dcgan1.py) is computationally very intensive (in fact it failed to run on my graphics card). But
+Currently the DCGan in [dcgan1.py](mxnet_text_to_image/library/dcgan1.py) is computationally very intensive (in fact it failed to run on my graphics card, though runs fine on CPU). But
 DCGan in [dcgan2.py](mxnet_text_to_image/library/dcgan2.py) works.
     
 # Usage
@@ -42,6 +42,7 @@ import sys
 import mxnet as mx
 import logging
 
+LOAD_EXISTING_MODEL = False
 
 def patch_path(path):
     return os.path.join(os.path.dirname(__file__), path)
@@ -60,19 +61,25 @@ def main():
 
     from mxnet_text_to_image.library.dcgan2 import DCGan
     from mxnet_text_to_image.data.flowers import get_data_iter
+    from mxnet_text_to_image.data.flowers_images import get_transformed_images
 
     train_data = get_data_iter(data_dir_path=data_dir_path,
-                               ctx=mx.cpu(),
-                               image_feature_extractor=None,
-                               image_width=64,
-                               image_height=64,
                                batch_size=batch_size,
+                               limit=10000,
                                text_mode='add')
 
-    gan = DCGan(model_ctx=ctx)
-    gan.random_input_size = 100  # random input is 100, text input is 300
+    image_dict = get_transformed_images(data_dir_path=os.path.join(data_dir_path, 'jpg'),
+                                        image_width=64, image_height=64)
 
-    gan.fit(train_data=train_data, model_dir_path=output_dir_path, epochs=epochs, batch_size=batch_size)
+    gan = DCGan(model_ctx=ctx)
+    gan.random_input_size = 20  # random input is 20, text input is 300
+    if LOAD_EXISTING_MODEL:
+        gan.load_model(model_dir_path=output_dir_path)
+
+    start_epoch = 0
+    gan.fit(train_data=train_data, image_dict=image_dict, model_dir_path=output_dir_path,
+            start_epoch=start_epoch,
+            epochs=epochs, batch_size=batch_size)
 
 
 if __name__ == '__main__':
@@ -115,9 +122,11 @@ def main():
     gan.load_glove(glove_dir_path=patch_path('data/glove'))
     gan.load_model(model_dir_path=model_dir_path)
 
-    texts = load_texts(patch_path('data/flowers/text_c10'))
-    for i, (line, image_id) in enumerate(texts.items()):
-        gan.generate(text_message=line, num_images=1, output_dir_path=patch_path('output'))
+    texts = load_texts(patch_path('data/flowers/text_c10'), 300)
+    for i, (image_id, lines) in enumerate(texts.items()):
+        for j, line in enumerate(lines[:1]):
+            print(line)
+            gan.generate(text_message=line, output_dir_path=patch_path('output'), filename=str(i) + '-' + str(j) + '.png')
 
 
 if __name__ == '__main__':
