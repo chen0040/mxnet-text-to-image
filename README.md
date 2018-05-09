@@ -31,8 +31,25 @@ python demo/dcgan2_test.py
     
 # Usage
 
+### Training
+
 The [demo](demo) codes contains scripts on how to train the DCGAN models using the [flowers](http://www.robots.ox.ac.uk/~vgg/data/flowers/102/)
-dataset. To train the [DCGan](mxnet_text_to_image/library/dcgan2.py) in [dcgan2.py](mxnet_text_to_image/library/dcgan2.py)
+dataset.
+
+Before the training can start, the dataset must be prepared:
+
+Step 1: download flower dataset from : http://www.robots.ox.ac.uk/~vgg/data/flowers/102/
+Step 2: extract the images and put them into the demo/data/flowers/jpg folder
+
+The caption dataset is already included in the project in the [demo/data/flowers/text_c10](demo/data/flowers/text_c10)
+
+Next build the image features and text features from the images and the caption dataset, run the following command:
+
+```bash
+python demo/generate_features.py
+```
+
+To train the [DCGan](mxnet_text_to_image/library/dcgan2.py) in [dcgan2.py](mxnet_text_to_image/library/dcgan2.py)
 using the flowers dataset, run the following command:
 
 ```bash
@@ -92,6 +109,8 @@ if __name__ == '__main__':
 ```
 
 After training, the trained models will be saved to the [demo/models](demo/models) folder with prefix "dcgan-v2-..."
+
+### Testing trained models
 
 To test the trained models in [demo/models], run the following command:
 
