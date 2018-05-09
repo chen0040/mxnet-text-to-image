@@ -22,11 +22,16 @@ The current project implement the following DCGAN models that can perform text-t
     Dense layers to produce a single output, which is passed to SigmoidBinaryCrossEntropy loss function.
     
 Currently the DCGan in [dcgan1.py](mxnet_text_to_image/library/dcgan1.py) is computationally very intensive (in fact it failed to run on my graphics card, though runs fine on CPU). But
-DCGan in [dcgan2.py](mxnet_text_to_image/library/dcgan2.py) works.
+DCGan in [dcgan2.py](mxnet_text_to_image/library/dcgan2.py) works. To test out the DCGan in [dcgan2.py](mxnet_text_to_image/library/dcgan2.py)
+with pretrained models in [demo/models](demo/models), run the following command:
+
+```bash
+python demo/dcgan2_test.py
+```
     
 # Usage
 
-The [demo] codes contains scripts on how to train the DCGAN models using the [flowers](http://www.robots.ox.ac.uk/~vgg/data/flowers/102/)
+The [demo](demo) codes contains scripts on how to train the DCGAN models using the [flowers](http://www.robots.ox.ac.uk/~vgg/data/flowers/102/)
 dataset. To train the [DCGan](mxnet_text_to_image/library/dcgan2.py) in [dcgan2.py](mxnet_text_to_image/library/dcgan2.py)
 using the flowers dataset, run the following command:
 
