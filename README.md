@@ -157,3 +157,25 @@ if __name__ == '__main__':
     main()
 
 ```
+
+Some sample results are show below:
+
+class 2 - instance 4 text: this flower has very long yellow stamen and a large white petal around it.
+
+![](images/2-4.png)
+
+class 4 - instance 2 text: this flower is pink and white in color, with petals that are striped with veins.
+
+![](images/4-2.png)
+
+class 37 - instance 8 text: this flower consists of lavender pedals with long white stamen.
+
+![](images/37-8.png)
+
+class 39 - instance 7 text: this flower is pink in color, and has petals that are oval shaped with veins.
+
+![](images/39-9.png)
+
+
+
+

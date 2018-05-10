@@ -30,7 +30,7 @@ def main():
     for i, (image_id, lines) in enumerate(texts.items()):
         j = random.randint(0, len(lines)-1)
         line = lines[j]
-        print(line)
+        print('class', i, '- instance', j, 'text:', line)
         gan.generate(text_message=line, output_dir_path=patch_path('output'), filename=str(i) + '-' + str(j) + '.png')
 
 
