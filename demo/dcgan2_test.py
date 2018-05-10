@@ -2,6 +2,9 @@ import os
 import sys
 import mxnet as mx
 import logging
+import random
+
+from mxnet_text_to_image.utils.plot_utils import show_images
 
 
 def patch_path(path):
@@ -23,11 +26,12 @@ def main():
     gan.load_glove(glove_dir_path=patch_path('data/glove'))
     gan.load_model(model_dir_path=model_dir_path)
 
-    texts = load_texts(patch_path('data/flowers/text_c10'), 300)
+    texts = load_texts(patch_path('data/flowers/text_c10'), 1000)
     for i, (image_id, lines) in enumerate(texts.items()):
-        for j, line in enumerate(lines[:1]):
-            print(line)
-            gan.generate(text_message=line, output_dir_path=patch_path('output'), filename=str(i) + '-' + str(j) + '.png')
+        j = random.randint(0, len(lines)-1)
+        line = lines[j]
+        print(line)
+        gan.generate(text_message=line, output_dir_path=patch_path('output'), filename=str(i) + '-' + str(j) + '.png')
 
 
 if __name__ == '__main__':

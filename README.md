@@ -78,7 +78,7 @@ def main():
     data_dir_path = patch_path('data/flowers')
     output_dir_path = patch_path('models')
     batch_size = 64
-    epochs = 100
+    epochs = 100  
     ctx = mx.gpu(0)
 
     from mxnet_text_to_image.library.dcgan2 import DCGan

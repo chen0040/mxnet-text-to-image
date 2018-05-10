@@ -3,7 +3,7 @@ import sys
 import mxnet as mx
 import logging
 
-LOAD_EXISTING_MODEL = True
+LOAD_EXISTING_MODEL = False
 
 def patch_path(path):
     return os.path.join(os.path.dirname(__file__), path)
@@ -17,7 +17,7 @@ def main():
     data_dir_path = patch_path('data/flowers')
     output_dir_path = patch_path('models')
     batch_size = 64
-    epochs = 200
+    epochs = 100
     ctx = mx.gpu(0)
 
     from mxnet_text_to_image.library.dcgan2 import DCGan
@@ -37,7 +37,7 @@ def main():
     if LOAD_EXISTING_MODEL:
         gan.load_model(model_dir_path=output_dir_path)
 
-    start_epoch = 100
+    start_epoch = 0
     gan.fit(train_data=train_data, image_dict=image_dict, model_dir_path=output_dir_path,
             start_epoch=start_epoch,
             epochs=epochs, batch_size=batch_size)

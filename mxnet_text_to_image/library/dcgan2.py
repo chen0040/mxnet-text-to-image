@@ -260,5 +260,7 @@ class DCGan(object):
         latent_z = nd.random_normal(loc=0, scale=1, shape=(1, self.random_input_size, 1, 1), ctx=self.model_ctx)
         img = self.netG(nd.concat(latent_z, text_feats, dim=1))[0]
         img = inverted_transform(img).asnumpy().astype(np.uint8)
+
         # img = ((img.asnumpy().transpose(1, 2, 0) + 1.0) * 127.5).astype(np.uint8)
         save_image(img, os.path.join(output_dir_path, filename))
+        return img
